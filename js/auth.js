@@ -11,6 +11,15 @@ const LOCAL_ACCOUNTS_KEY = 'AUTOELITE_LOCAL_ACCOUNTS';
 // Default built-in demonstration accounts
 const DEFAULT_ACCOUNTS = [
   {
+    id: '00000000-0000-0000-0000-000000000097',
+    full_name: 'Showroom Executive Admin',
+    email: 'admin@gmail.com',
+    phone: '+91 98765 00001',
+    password: 'admin123',
+    role: 'admin',
+    avatar_url: ''
+  },
+  {
     id: '00000000-0000-0000-0000-000000000099',
     full_name: 'Showroom Executive Admin',
     email: 'admin@autoelite.luxury',
@@ -81,21 +90,45 @@ export class AuthService {
   static listeners = [];
 
   static _getLocalAccounts() {
+    let accounts = [];
     try {
       const stored = localStorage.getItem(LOCAL_ACCOUNTS_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed;
+          accounts = parsed;
         }
       }
     } catch (e) {
       console.warn('Could not read stored local accounts:', e);
     }
+
+    if (accounts.length === 0) {
+      accounts = [...DEFAULT_ACCOUNTS];
+    }
+
+    // Always ensure admin@gmail.com with password admin123 is present
+    const adminIdx = accounts.findIndex(a => a.email.toLowerCase() === 'admin@gmail.com');
+    if (adminIdx >= 0) {
+      accounts[adminIdx].password = 'admin123';
+      accounts[adminIdx].role = 'admin';
+    } else {
+      accounts.unshift({
+        id: '00000000-0000-0000-0000-000000000097',
+        full_name: 'Showroom Executive Admin',
+        email: 'admin@gmail.com',
+        phone: '+91 98765 00001',
+        password: 'admin123',
+        role: 'admin',
+        avatar_url: ''
+      });
+    }
+
     try {
-      localStorage.setItem(LOCAL_ACCOUNTS_KEY, JSON.stringify(DEFAULT_ACCOUNTS));
+      localStorage.setItem(LOCAL_ACCOUNTS_KEY, JSON.stringify(accounts));
     } catch (e) {}
-    return [...DEFAULT_ACCOUNTS];
+
+    return accounts;
   }
 
   static _saveLocalAccounts(accounts) {
@@ -371,7 +404,7 @@ export class AuthService {
   }
 
   static async loginAsDemoAdmin() {
-    return this.login('admin@autoelite.luxury', 'adminPass123!');
+    return this.login('admin@gmail.com', 'admin123');
   }
 
   static isAuthenticated() {
