@@ -6,11 +6,105 @@
 import { getSupabase, isConnectedToSupabase, getLocalDb } from './supabase.js';
 
 const AUTH_USER_KEY = 'AUTOELITE_AUTH_USER';
+const LOCAL_ACCOUNTS_KEY = 'AUTOELITE_LOCAL_ACCOUNTS';
+
+// Default built-in demonstration accounts
+const DEFAULT_ACCOUNTS = [
+  {
+    id: '00000000-0000-0000-0000-000000000099',
+    full_name: 'Showroom Executive Admin',
+    email: 'admin@autoelite.luxury',
+    phone: '+91 98765 00001',
+    password: 'adminPass123!',
+    role: 'admin',
+    avatar_url: ''
+  },
+  {
+    id: '00000000-0000-0000-0000-000000000098',
+    full_name: 'Showroom Admin',
+    email: 'admin@autoelite.com',
+    phone: '+91 98765 00001',
+    password: 'adminPass123!',
+    role: 'admin',
+    avatar_url: ''
+  },
+  {
+    id: 'demo-user-1',
+    full_name: 'Vikramaditya Singhania',
+    email: 'vikram.singhania@example.com',
+    phone: '+91 98111 22334',
+    password: 'demoPass123!',
+    role: 'customer',
+    avatar_url: ''
+  },
+  {
+    id: 'demo-user-2',
+    full_name: 'Aanya Kapoor',
+    email: 'aanya.kapoor@example.com',
+    phone: '+91 98222 33445',
+    password: 'demoPass123!',
+    role: 'customer',
+    avatar_url: ''
+  },
+  {
+    id: 'demo-user-3',
+    full_name: 'Rajesh Malhotra',
+    email: 'rajesh.malhotra@example.com',
+    phone: '+91 98333 44556',
+    password: 'demoPass123!',
+    role: 'customer',
+    avatar_url: ''
+  },
+  {
+    id: 'demo-user-4',
+    full_name: 'Dr. Rohan Mukherjee',
+    email: 'dr.rohan@example.com',
+    phone: '+91 98444 55667',
+    password: 'demoPass123!',
+    role: 'customer',
+    avatar_url: ''
+  },
+  {
+    id: 'demo-user-5',
+    full_name: 'Pooja Nambiar',
+    email: 'pooja.nambiar@example.com',
+    phone: '+91 98555 66778',
+    password: 'demoPass123!',
+    role: 'customer',
+    avatar_url: ''
+  }
+];
 
 export class AuthService {
   static currentUser = null;
   static currentRole = 'guest'; // 'guest', 'customer', 'admin'
   static listeners = [];
+
+  static _getLocalAccounts() {
+    try {
+      const stored = localStorage.getItem(LOCAL_ACCOUNTS_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.warn('Could not read stored local accounts:', e);
+    }
+    try {
+      localStorage.setItem(LOCAL_ACCOUNTS_KEY, JSON.stringify(DEFAULT_ACCOUNTS));
+    } catch (e) {}
+    return [...DEFAULT_ACCOUNTS];
+  }
+
+  static _saveLocalAccounts(accounts) {
+    try {
+      localStorage.setItem(LOCAL_ACCOUNTS_KEY, JSON.stringify(accounts));
+    } catch (e) {
+      console.warn('Could not save local accounts:', e);
+    }
+  }
 
   /**
    * Initializes auth state from storage or Supabase session
@@ -100,10 +194,16 @@ export class AuthService {
       throw new Error('Please fill in all required fields.');
     }
 
+    if (password.length < 6) {
+      throw new Error('Password must be at least 6 characters long.');
+    }
+
+    const cleanEmail = email.toLowerCase().trim();
+
     if (isConnectedToSupabase()) {
       const sb = getSupabase();
       const { data, error } = await sb.auth.signUp({
-        email,
+        email: cleanEmail,
         password,
         options: {
           data: {
@@ -120,23 +220,52 @@ export class AuthService {
     }
 
     // Local / Demo registration
+    const accounts = this._getLocalAccounts();
+    const existing = accounts.find(a => a.email.toLowerCase() === cleanEmail);
+    if (existing) {
+      throw new Error('An account with this email address already exists. Please sign in instead.');
+    }
+
     const newUser = {
       id: 'usr-' + Math.random().toString(36).substr(2, 9),
       full_name: fullName,
-      email,
+      email: cleanEmail,
       phone: phone || '',
-      avatar_url: ''
+      password: password,
+      role: 'customer',
+      avatar_url: '',
+      created_at: new Date().toISOString()
     };
 
-    // Save in localDb customers
-    const db = getLocalDb();
-    db.customers.push({ ...newUser, role: 'customer', created_at: new Date().toISOString() });
+    accounts.push(newUser);
+    this._saveLocalAccounts(accounts);
 
-    this.currentUser = newUser;
+    // Also register in in-memory localDb customers
+    const db = getLocalDb();
+    if (db && Array.isArray(db.customers)) {
+      db.customers.push({
+        id: newUser.id,
+        full_name: newUser.full_name,
+        email: newUser.email,
+        phone: newUser.phone,
+        role: 'customer',
+        created_at: newUser.created_at
+      });
+    }
+
+    const safeUser = {
+      id: newUser.id,
+      full_name: newUser.full_name,
+      email: newUser.email,
+      phone: newUser.phone,
+      avatar_url: newUser.avatar_url
+    };
+
+    this.currentUser = safeUser;
     this.currentRole = 'customer';
-    localStorage.setItem(AUTH_USER_KEY, JSON.stringify({ user: this.currentUser, role: 'customer' }));
+    localStorage.setItem(AUTH_USER_KEY, JSON.stringify({ user: safeUser, role: 'customer' }));
     this._notify();
-    return this.currentUser;
+    return safeUser;
   }
 
   /**
@@ -144,13 +273,20 @@ export class AuthService {
    */
   static async login(email, password) {
     if (!email || !password) {
-      throw new Error('Please enter your email and password.');
+      throw new Error('Please enter both your email address and password.');
     }
+
+    const cleanEmail = email.toLowerCase().trim();
 
     if (isConnectedToSupabase()) {
       const sb = getSupabase();
-      const { data, error } = await sb.auth.signInWithPassword({ email, password });
-      if (error) throw error;
+      const { data, error } = await sb.auth.signInWithPassword({ email: cleanEmail, password });
+      if (error) {
+        if (error.message.toLowerCase().includes('invalid login credentials')) {
+          throw new Error('Invalid email or password. If you have not created an account yet, please register.');
+        }
+        throw error;
+      }
       if (data.user) {
         await this._loadUserProfile(data.user);
         return { user: this.currentUser, role: this.currentRole };
@@ -158,38 +294,32 @@ export class AuthService {
     }
 
     // Local / Demo authentication logic
-    // Admin check
-    if (email.toLowerCase() === 'admin@autoelite.luxury' || email.toLowerCase() === 'admin@autoelite.com') {
-      const adminUser = {
-        id: '00000000-0000-0000-0000-000000000099',
-        full_name: 'Showroom Executive Admin',
-        email: 'admin@autoelite.luxury',
-        phone: '+91 98765 00001',
-        avatar_url: ''
-      };
-      this.currentUser = adminUser;
-      this.currentRole = 'admin';
-      localStorage.setItem(AUTH_USER_KEY, JSON.stringify({ user: adminUser, role: 'admin' }));
-      this._notify();
-      return { user: adminUser, role: 'admin' };
+    const accounts = this._getLocalAccounts();
+    const account = accounts.find(a => a.email.toLowerCase() === cleanEmail);
+
+    // 1. Account Existence Validation
+    if (!account) {
+      throw new Error('No account found with this email. Please click "Create Account" below to register.');
     }
 
-    // Customer check
-    const db = getLocalDb();
-    const existing = db.customers.find(c => c.email.toLowerCase() === email.toLowerCase());
-    const customerUser = existing || {
-      id: 'usr-customer-1',
-      full_name: email.split('@')[0],
-      email: email,
-      phone: '+91 98111 22334',
-      avatar_url: ''
+    // 2. Password Validation
+    if (account.password !== password) {
+      throw new Error('Incorrect password. Please verify your password and try again.');
+    }
+
+    const safeUser = {
+      id: account.id,
+      full_name: account.full_name,
+      email: account.email,
+      phone: account.phone || '',
+      avatar_url: account.avatar_url || ''
     };
 
-    this.currentUser = customerUser;
-    this.currentRole = 'customer';
-    localStorage.setItem(AUTH_USER_KEY, JSON.stringify({ user: customerUser, role: 'customer' }));
+    this.currentUser = safeUser;
+    this.currentRole = account.role;
+    localStorage.setItem(AUTH_USER_KEY, JSON.stringify({ user: safeUser, role: account.role }));
     this._notify();
-    return { user: customerUser, role: 'customer' };
+    return { user: safeUser, role: account.role };
   }
 
   /**
@@ -216,10 +346,19 @@ export class AuthService {
    */
   static async resetPassword(email) {
     if (!email) throw new Error('Please enter your registered email address.');
+    const cleanEmail = email.toLowerCase().trim();
+
     if (isConnectedToSupabase()) {
       const sb = getSupabase();
-      const { error } = await sb.auth.resetPasswordForEmail(email);
+      const { error } = await sb.auth.resetPasswordForEmail(cleanEmail);
       if (error) throw error;
+      return true;
+    }
+
+    const accounts = this._getLocalAccounts();
+    const account = accounts.find(a => a.email.toLowerCase() === cleanEmail);
+    if (!account) {
+      throw new Error('No account found with this email address.');
     }
     return true;
   }
