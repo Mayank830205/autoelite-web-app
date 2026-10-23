@@ -40,33 +40,45 @@ export class Router {
         const url = new URL(link.href);
         // If internal link and not opening in new tab
         if (url.origin === window.location.origin && !link.target && !e.ctrlKey && !e.metaKey) {
+          // If pure hash on same page
+          if (url.hash && url.pathname === window.location.pathname) {
+            const targetEl = document.querySelector(url.hash);
+            if (targetEl) {
+              e.preventDefault();
+              targetEl.scrollIntoView({ behavior: 'smooth' });
+              window.history.pushState(null, '', url.pathname + url.search + url.hash);
+              return;
+            }
+          }
           e.preventDefault();
-          this.navigate(url.pathname + url.search);
+          this.navigate(url.pathname + url.search + url.hash);
         }
       }
     });
 
     // Browser back/forward navigation
     window.addEventListener('popstate', () => {
-      this.resolve(window.location.pathname, this._parseQuery(window.location.search));
+      this.resolve(window.location.pathname, this._parseQuery(window.location.search), window.location.hash);
     });
 
     // Initial resolution
-    this.resolve(window.location.pathname, this._parseQuery(window.location.search));
+    this.resolve(window.location.pathname, this._parseQuery(window.location.search), window.location.hash);
   }
 
   navigate(urlPath, pushToHistory = true) {
-    const [path, search] = urlPath.split('?');
+    const hashSplit = urlPath.split('#');
+    const hash = hashSplit.length > 1 ? '#' + hashSplit[1] : '';
+    const [path, search] = hashSplit[0].split('?');
     const query = this._parseQuery(search ? '?' + search : '');
 
     if (pushToHistory) {
       window.history.pushState(null, '', urlPath);
     }
 
-    this.resolve(path, query);
+    this.resolve(path, query, hash);
   }
 
-  async resolve(path, query = {}) {
+  async resolve(path, query = {}, hash = '') {
     // Clean trailing slashes
     const cleanPath = path === '/' ? '/' : path.replace(/\/$/, '');
 
@@ -123,7 +135,18 @@ export class Router {
     try {
       const html = await match.view.render(params, query);
       this.container.innerHTML = html;
-      window.scrollTo(0, 0);
+      if (hash) {
+        setTimeout(() => {
+          const anchorEl = document.querySelector(hash);
+          if (anchorEl) {
+            anchorEl.scrollIntoView({ behavior: 'smooth' });
+          } else {
+            window.scrollTo(0, 0);
+          }
+        }, 50);
+      } else {
+        window.scrollTo(0, 0);
+      }
 
       // Trigger afterRender hook
       if (match.view.afterRender) {
@@ -199,6 +222,7 @@ export const appRoutes = [
   { path: '/booking', view: BookingView },
   { path: '/booking/:carId', view: BookingView },
   { path: '/my-bookings', view: MyBookingsView, requireAuth: true },
+  { path: '/my-bookings/:bookingId', view: MyBookingsView, requireAuth: true },
   { path: '/profile', view: ProfileView, requireAuth: true },
   { path: '/admin', view: AdminDashboardView, requireAdmin: true },
   { path: '/admin/cars', view: AdminCarsView, requireAdmin: true },

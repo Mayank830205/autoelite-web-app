@@ -9,9 +9,10 @@ import { formatDate, formatTime, escapeHTML } from '../utils.js';
 import { UI } from '../ui.js';
 
 export class MyBookingsView {
-  static async render() {
+  static async render(params) {
     const user = AuthService.getUser();
     const bookings = await BookingService.getMyBookings(user?.id, user?.email);
+    const targetBookingId = params?.bookingId || null;
 
     return `
       <div class="container section" style="padding-top: calc(var(--header-height) + 2rem);">
@@ -39,6 +40,7 @@ export class MyBookingsView {
             ${bookings.map(b => {
               const car = b.cars;
               const isCancellable = b.booking_status === 'pending' || b.booking_status === 'confirmed';
+              const isTargeted = targetBookingId && (b.id === targetBookingId || b.booking_reference === targetBookingId);
 
               let statusBadgeClass = 'badge-pending';
               if (b.booking_status === 'confirmed') statusBadgeClass = 'badge-confirmed';
@@ -46,7 +48,7 @@ export class MyBookingsView {
               if (b.booking_status === 'cancelled' || b.booking_status === 'rejected') statusBadgeClass = 'badge-cancelled';
 
               return `
-                <div class="glass-panel" style="padding: 1.75rem 2rem;">
+                <div class="glass-panel" style="padding: 1.75rem 2rem; ${isTargeted ? 'border-color: var(--accent-primary); box-shadow: 0 0 25px rgba(214, 179, 106, 0.3);' : ''}">
                   <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 1.25rem;">
                     <div>
                       <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.35rem;">

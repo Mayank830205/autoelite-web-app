@@ -135,7 +135,7 @@ export class HomeView {
         </section>
 
         <!-- WHY CHOOSE AUTOELITE -->
-        <section class="section" style="background:var(--bg-secondary);">
+        <section class="section" id="about" style="background:var(--bg-secondary);">
           <div class="container">
             <div class="section-header text-center" data-reveal>
               <div class="section-tag">The AUTOELITE Difference</div>
@@ -144,7 +144,6 @@ export class HomeView {
                 We believe selecting a distinguished vehicle should be as exhilarating as driving it.
               </p>
             </div>
-
             <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:2rem;">
               <div class="glass-panel" style="padding:2.25rem;" data-reveal>
                 <div style="width:48px;height:48px;border-radius:12px;background:var(--accent-gold-subtle);color:var(--accent-primary);display:flex;align-items:center;justify-content:center;margin-bottom:1.5rem;">
@@ -249,7 +248,7 @@ export class HomeView {
         </section>
 
         <!-- FOOTER -->
-        <footer style="background:#050709;padding:4rem 0 2rem;border-top:1px solid var(--border-default);">
+        <footer id="contact" style="background:#050709;padding:4rem 0 2rem;border-top:1px solid var(--border-default);">
           <div class="container">
             <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:2.5rem;margin-bottom:3rem;">
               <div>

@@ -273,6 +273,11 @@ export class CarDetailsView {
       if (btnGallery) btnGallery.classList.toggle('active', mode === 'gallery');
       if (btn3d) btn3d.classList.toggle('active', mode === '3d');
 
+      const hint = document.querySelector('.viewer-360-hint');
+      const badge = document.querySelector('.viewer-360-badge');
+      if (hint) hint.style.display = mode === '360' ? 'flex' : 'none';
+      if (badge) badge.style.display = mode === '360' ? 'block' : 'none';
+
       if (mode === '3d') {
         displayImg.style.display = 'none';
         canvas3d.style.display = 'block';

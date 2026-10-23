@@ -65,12 +65,16 @@ export class Animations {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
           entry.target.classList.add('is-revealed');
+          if (entry.target.hasAttribute('data-counter')) {
+            const target = Number(entry.target.getAttribute('data-counter'));
+            Animations.animateCounter(entry.target, target, 1400);
+          }
           observer.unobserve(entry.target);
         }
       });
     }, { threshold: 0.12 });
 
-    document.querySelectorAll('[data-reveal]').forEach(el => observer.observe(el));
+    document.querySelectorAll('[data-reveal], [data-counter]').forEach(el => observer.observe(el));
   }
 
   /**
@@ -80,7 +84,7 @@ export class Animations {
     if (!el) return;
     const end = Number(target) || 0;
     if (this.prefersReducedMotion || end === 0) {
-      el.textContent = end.toLocaleString('en-IN');
+      el.textContent = end.toLocaleString('en-IN') + '+';
       return;
     }
 
@@ -93,12 +97,12 @@ export class Animations {
       // easeOutExpo
       const ease = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
       const current = Math.floor(ease * end);
-      el.textContent = current.toLocaleString('en-IN');
+      el.textContent = current.toLocaleString('en-IN') + '+';
 
       if (progress < 1) {
         requestAnimationFrame(step);
       } else {
-        el.textContent = end.toLocaleString('en-IN');
+        el.textContent = end.toLocaleString('en-IN') + '+';
       }
     };
 

@@ -136,6 +136,13 @@ export class AnalyticsService {
   }
 
   /**
+   * Alias for status doughnut chart breakdown
+   */
+  static async getStatusBreakdown() {
+    return this.getStatusDistributionData();
+  }
+
+  /**
    * Generates most requested car models chart data
    */
   static async getPopularModelsData() {
