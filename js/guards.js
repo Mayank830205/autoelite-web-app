@@ -34,10 +34,13 @@ export class RouteGuards {
     // 2. Customer Auth Route Guard
     if (routeConfig.requireAuth) {
       if (!isAuth) {
+        const isBooking = targetPath.startsWith('/booking');
         return {
           allowed: false,
           redirect: `/login?redirect=${encodeURIComponent(targetPath)}`,
-          reason: 'Please sign in to manage your appointments.'
+          reason: isBooking 
+            ? 'Please sign in or create an account to book your test drive.' 
+            : 'Please sign in to access your appointments and portfolio.'
         };
       }
     }

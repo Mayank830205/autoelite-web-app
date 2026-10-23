@@ -116,7 +116,9 @@ export class Router {
     }
 
     // Evaluate route guard
-    const guardResult = RouteGuards.evaluate(match, cleanPath);
+    const queryString = new URLSearchParams(query).toString();
+    const fullPath = cleanPath + (queryString ? '?' + queryString : '');
+    const guardResult = RouteGuards.evaluate(match, fullPath);
     if (!guardResult.allowed) {
       if (guardResult.reason) {
         UI.showToast('Notice', guardResult.reason, 'warning');
@@ -219,8 +221,8 @@ export const appRoutes = [
   { path: '/register', view: RegisterView, guestOnly: true },
   { path: '/forgot-password', view: ForgotPasswordView, guestOnly: true },
   { path: '/dashboard', view: UserDashboardView, requireAuth: true },
-  { path: '/booking', view: BookingView },
-  { path: '/booking/:carId', view: BookingView },
+  { path: '/booking', view: BookingView, requireAuth: true },
+  { path: '/booking/:carId', view: BookingView, requireAuth: true },
   { path: '/my-bookings', view: MyBookingsView, requireAuth: true },
   { path: '/my-bookings/:bookingId', view: MyBookingsView, requireAuth: true },
   { path: '/profile', view: ProfileView, requireAuth: true },

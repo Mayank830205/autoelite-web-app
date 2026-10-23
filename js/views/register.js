@@ -6,7 +6,8 @@ import { AuthService } from '../auth.js';
 import { UI } from '../ui.js';
 
 export class RegisterView {
-  static async render() {
+  static async render(params, query) {
+    const redirectUrl = query?.redirect || '/dashboard';
     return `
       <div class="container section" style="padding-top: calc(var(--header-height) + 3rem); min-height: 85vh; display: flex; align-items: center; justify-content: center;">
         <div class="glass-panel" style="width: 100%; max-width: 520px; padding: 2.5rem;">
@@ -57,14 +58,15 @@ export class RegisterView {
 
           <div class="text-center" style="margin-top: 1.75rem; font-size: 0.875rem; color: var(--text-secondary);">
             Already registered? 
-            <a href="/login" data-link style="color: var(--accent-primary); font-weight: 600;">Sign In</a>
+            <a href="/login${redirectUrl && redirectUrl !== '/dashboard' ? '?redirect=' + encodeURIComponent(redirectUrl) : ''}" data-link style="color: var(--accent-primary); font-weight: 600;">Sign In</a>
           </div>
         </div>
       </div>
     `;
   }
 
-  static afterRender() {
+  static afterRender(params, query) {
+    const redirectUrl = query?.redirect || '/dashboard';
     const form = document.getElementById('register-form');
     const submitBtn = document.getElementById('btn-reg-submit');
 
@@ -88,7 +90,7 @@ export class RegisterView {
         try {
           await AuthService.register({ fullName, email, phone, password });
           UI.showToast('Welcome to AUTOELITE', 'Your membership has been established.', 'success');
-          window.appRouter.navigate('/dashboard');
+          window.appRouter.navigate(redirectUrl);
         } catch (err) {
           UI.showToast('Registration Error', err.message, 'error');
           submitBtn.disabled = false;

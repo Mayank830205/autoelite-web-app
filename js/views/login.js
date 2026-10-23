@@ -57,7 +57,7 @@ export class LoginView {
 
           <div class="text-center" style="margin-top: 2rem; font-size: 0.875rem; color: var(--text-secondary);">
             Don't have an account yet? 
-            <a href="/register" data-link style="color: var(--accent-primary); font-weight: 600;">Create Account</a>
+            <a href="/register${redirectUrl && redirectUrl !== '/dashboard' ? '?redirect=' + encodeURIComponent(redirectUrl) : ''}" data-link style="color: var(--accent-primary); font-weight: 600;">Create Account</a>
           </div>
         </div>
       </div>
