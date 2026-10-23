@@ -1,0 +1,206 @@
+/* ====================================================================
+   AUTOELITE — RESPONSIVE BREAKPOINTS & MOBILE ADAPTATIONS
+   Targets: 1440px, 1024px, 768px, 390px, 360px
+   ==================================================================== */
+
+/* --- 1024px AND DOWN (Laptops & Tablets) --- */
+@media (max-width: 1024px) {
+  :root {
+    --header-height: 70px;
+  }
+
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-card.full-width {
+    grid-column: span 1;
+  }
+
+  .booking-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .booking-summary-card {
+    position: static;
+  }
+
+  .hero-stats {
+    gap: 1.5rem;
+  }
+}
+
+/* --- 768px AND DOWN (Tablets & Mobile) --- */
+@media (max-width: 768px) {
+  .nav-links, .nav-actions .btn {
+    display: none;
+  }
+
+  .mobile-menu-btn {
+    display: block;
+  }
+
+  /* Mobile Drawer Menu */
+  .mobile-drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 300px;
+    background: var(--bg-secondary);
+    border-left: 1px solid var(--border-default);
+    z-index: var(--z-modal);
+    padding: 2rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    transform: translateX(100%);
+    transition: transform var(--transition-smooth);
+    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.8);
+  }
+
+  .mobile-drawer.is-open {
+    transform: translateX(0);
+  }
+
+  .mobile-drawer-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(8, 10, 13, 0.7);
+    backdrop-filter: blur(8px);
+    z-index: calc(var(--z-modal) - 1);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition-fast);
+  }
+
+  .mobile-drawer-backdrop.is-open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .mobile-drawer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .mobile-drawer-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    flex-grow: 1;
+  }
+
+  .mobile-drawer-nav .nav-link {
+    font-size: 1.15rem;
+  }
+
+  .mobile-drawer-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  /* Admin Sidebar on Mobile becomes overlay */
+  .admin-sidebar {
+    transform: translateX(-100%);
+    transition: transform var(--transition-smooth);
+    width: 280px !important;
+  }
+
+  .admin-sidebar.mobile-open {
+    transform: translateX(0);
+    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.8);
+  }
+
+  .dashboard-main {
+    margin-left: 0 !important;
+    padding: 1.5rem 1rem 3rem;
+  }
+
+  .filters-bar {
+    grid-template-columns: 1fr;
+  }
+
+  .search-input-wrap {
+    grid-column: span 1;
+  }
+
+  .car-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .booking-type-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-stats {
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .hero-buttons {
+    flex-direction: column;
+  }
+
+  .hero-buttons .btn {
+    width: 100%;
+  }
+
+  #toast-container {
+    left: 1rem;
+    right: 1rem;
+    bottom: 1rem;
+  }
+
+  .toast {
+    min-width: 100%;
+    max-width: 100%;
+  }
+}
+
+/* --- 390px & 360px (Compact Mobile Screens) --- */
+@media (max-width: 420px) {
+  html {
+    font-size: 14px;
+  }
+
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .car-card-actions {
+    flex-direction: column;
+  }
+
+  .car-card-specs-row {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .viewer-360-container {
+    aspect-ratio: 4 / 3;
+  }
+
+  .slots-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .step-label {
+    display: none;
+  }
+
+  .modal-container {
+    margin: 0.5rem;
+  }
+}
