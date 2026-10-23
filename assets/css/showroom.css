@@ -92,6 +92,12 @@
   padding: 0.5rem;
 }
 
+/* Mobile Drawer & Backdrop (Hidden on Desktop by default) */
+.mobile-drawer,
+.mobile-drawer-backdrop {
+  display: none;
+}
+
 /* --- HERO SECTION --- */
 .hero-section {
   position: relative;
